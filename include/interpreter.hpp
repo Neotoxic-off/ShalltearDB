@@ -1,5 +1,10 @@
-
 #pragma once
+
+    #include <iostream>
+    #include <vector>
+    #include <map>
+    #include <sstream>
+    #include <algorithm>
 
     #include "database.hpp"
 
@@ -9,7 +14,9 @@
             Interpreter(Database *);
             ~Interpreter();
 
-            void Interpret(std::string);
+            void Insert(int, std::string);
+            void Display();
+            void Save();
 
         private:
             Database *db;

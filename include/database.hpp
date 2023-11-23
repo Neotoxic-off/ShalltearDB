@@ -5,6 +5,7 @@
     #include <map>
     #include <sstream>
     #include <algorithm>
+    #include <fstream>
 
     class Database
     {
@@ -18,6 +19,10 @@
             void Remove(int);
             void Display();
 
+            void Save();
+            void Load();
+
         private:
+            std::string path;
             std::map<int, std::string> data;
     };
