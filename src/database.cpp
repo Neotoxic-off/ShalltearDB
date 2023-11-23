@@ -81,3 +81,10 @@ void Database::Load()
         std::cerr << "Unable to open file: " << this->path << std::endl;
     }
 }
+
+bool Database::Exists()
+{
+    std::ifstream f(this->path);
+
+    return f.good();
+}

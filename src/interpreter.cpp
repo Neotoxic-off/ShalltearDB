@@ -61,3 +61,13 @@ void Interpreter::Save()
 {
     this->db->Save();
 }
+
+bool Interpreter::Load()
+{
+    if (this->db->Exists() == true) {
+        this->db->Load();
+        return (true);
+    }
+
+    return (false);
+}

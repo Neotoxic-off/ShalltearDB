@@ -3,11 +3,15 @@
 
 int main()
 {
-    Database *instance = new Database();
-    Interpreter *interpreter = new Interpreter(instance);
+    Database *database = new Database();
+    Interpreter *interpreter = new Interpreter(database);
 
-    interpreter->Insert(1, "John");
-    interpreter->Insert(2, "Jane");
+    if (database->Exists() == true) {
+        database->Load();
+        interpreter->Insert(2, "load");
+    } else {
+        interpreter->Insert(1, "sample");
+    }
 
     interpreter->Display();
 

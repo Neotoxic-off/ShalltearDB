@@ -10,6 +10,7 @@
     class Database
     {
         public:
+
             Database();
             ~Database();
 
@@ -20,6 +21,7 @@
             void Display();
 
             void Save();
+            bool Exists();
             void Load();
 
         private:

@@ -17,6 +17,7 @@
             void Insert(int, std::string);
             void Display();
             void Save();
+            bool Load();
 
         private:
             Database *db;
