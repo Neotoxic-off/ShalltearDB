@@ -54,3 +54,8 @@ void Logger::Pair(std::string key, std::string value)
 {
     this->Build("pair", (key + " " + value));
 }
+
+void Logger::Warning(std::string message)
+{
+    this->Build("warning", message);
+}

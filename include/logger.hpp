@@ -16,6 +16,7 @@
             void Success(std::string);
             void Ok(std::string);
             void Ko(std::string);
+            void Warning(std::string);
             void Pair(std::string, std::string);
 
         private:

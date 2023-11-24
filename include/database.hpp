@@ -23,12 +23,16 @@
             void Insert(std::string, std::string);
             std::string Retrieve(std::string);
             void Update(std::string, std::string);
-            void Remove(std::string);
+            void Delete(std::string);
             void Display();
 
             void Save();
             bool Exists();
             void Load();
+
+            std::string TerminatedString(std::istream &);
+            void SerializeTables(std::ostream &, const std::list<Table*> &);
+            bool Locked();
 
         private:
             Security security;

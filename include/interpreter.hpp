@@ -18,6 +18,9 @@
             void Display();
             void Save();
             bool Load();
+            void Update(std::string, std::string);
+            void Retrieve(std::string);
+            void Delete(std::string);
 
         private:
             Database *db;

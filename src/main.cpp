@@ -9,13 +9,15 @@ int main()
 
     if (database->Exists() == true) {
         database->Load();
-        // database->Select("table_1");
-        // interpreter->Insert("2", "load");
-    } else {
-        database->Create("0", "table_1");
-        database->Select("table_1");
-        interpreter->Insert("1", "sample");
     }
+    database->Select("table_1");
+
+    interpreter->Insert("2", "load");
+    interpreter->Insert("3", "delete this");
+    
+    interpreter->Display();
+
+    interpreter->Delete("3");
 
     interpreter->Display();
 
