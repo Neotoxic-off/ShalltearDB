@@ -47,7 +47,7 @@ Interpreter::~Interpreter()
 //     }
 // }
 
-void Interpreter::Insert(int id, std::string value)
+void Interpreter::Insert(std::string id, std::string value)
 {
     this->db->Insert(id, value);
 }

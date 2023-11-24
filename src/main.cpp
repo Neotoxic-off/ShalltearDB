@@ -3,14 +3,15 @@
 
 int main()
 {
-    Database *database = new Database();
+    std::string key = std::string("secure_key");
+    Database *database = new Database(key);
     Interpreter *interpreter = new Interpreter(database);
 
     if (database->Exists() == true) {
         database->Load();
-        interpreter->Insert(2, "load");
+        interpreter->Insert("2", "load");
     } else {
-        interpreter->Insert(1, "sample");
+        interpreter->Insert("1", "sample");
     }
 
     interpreter->Display();

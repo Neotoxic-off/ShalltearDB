@@ -14,7 +14,7 @@
             Interpreter(Database *);
             ~Interpreter();
 
-            void Insert(int, std::string);
+            void Insert(std::string, std::string);
             void Display();
             void Save();
             bool Load();

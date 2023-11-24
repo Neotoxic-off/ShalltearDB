@@ -7,17 +7,18 @@
     #include <algorithm>
     #include <fstream>
 
+    #include "security.hpp"
+
     class Database
     {
         public:
-
-            Database();
+            Database(std::string);
             ~Database();
 
-            void Insert(int, std::string);
-            std::string Retrieve(int);
-            void Update(int, std::string);
-            void Remove(int);
+            void Insert(std::string, std::string);
+            std::string Retrieve(std::string);
+            void Update(std::string, std::string);
+            void Remove(std::string);
             void Display();
 
             void Save();
@@ -25,6 +26,10 @@
             void Load();
 
         private:
+            Security security;
+
             std::string path;
-            std::map<int, std::string> data;
+            std::string key;
+            std::map<std::string, std::string> data;
+
     };
