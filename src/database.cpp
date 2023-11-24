@@ -2,9 +2,12 @@
 
 Database::Database(std::string _key)
 {
+    this->logger = Logger();
     this->path = std::string("database.stdb");
     this->key = _key;
     this->security = Security();
+    this->tables = std::vector<Table>();
+    this->instance = Table();
 }
 
 Database::~Database()
@@ -12,16 +15,28 @@ Database::~Database()
     
 }
 
+bool Database::Select(std::string select_table)
+{
+    for (auto &table : this->tables) {
+        if (table.name == select_table) {
+            this->instance = table;
+            return (true);
+        }
+    }
+
+    return (false);
+}
+
 void Database::Insert(std::string id, const std::string value)
 {
-    data[id] = value;
+    this->instance.content[id] = value;
 }
 
 std::string Database::Retrieve(std::string id)
 {
-    auto it = data.find(id);
+    auto it = this->instance.content.find(id);
 
-    if (it != data.end()) {
+    if (it != this->instance.content.end()) {
         return it->second;
     } else {
         return "Not found";
@@ -30,92 +45,87 @@ std::string Database::Retrieve(std::string id)
 
 void Database::Update(std::string id, std::string value)
 {
-    auto it = data.find(id);
+    auto it = this->instance.content.find(id);
 
-    if (it != data.end()) {
+    if (it != this->instance.content.end()) {
         it->second = value;
     } else {
-        std::cout << "Record not found." << std::endl;
+        this->logger.Ko("Record not found");
     }
 }
 
 void Database::Remove(std::string id)
 {
-    auto it = data.find(id);
+    auto it = this->instance.content.find(id);
 
-    if (it != data.end()) {
-        data.erase(it);
+    if (it != this->instance.content.end()) {
+        this->instance.content.erase(it);
     } else {
-        std::cout << "Record not found." << std::endl;
+        this->logger.Ko("Record not found");
     }
 }
 
 void Database::Display()
 {
-    for (const auto &entry : data) {
-        std::cout << "ID: " << entry.first << ", Value: " << entry.second << std::endl;
+    for (const auto &entry : this->instance.content) {
+        this->logger.Pair(entry.first, entry.second);
     }
 }
 
+std::vector<char> serializeTables(const std::vector<Table>& tables)
+{
+    std::vector<char> serializedData;
+    for (const auto& table : tables) {
+        serializedData.insert(serializedData.end(), table.name.begin(), table.name.end());
+        serializedData.push_back('\0');
+        serializedData.insert(serializedData.end(), table.id.begin(), table.id.end());
+        serializedData.push_back('\0');
+        for (const auto& entry : table.content) {
+            serializedData.insert(serializedData.end(), entry.first.begin(), entry.first.end());
+            serializedData.push_back('\0');
+            serializedData.insert(serializedData.end(), entry.second.begin(), entry.second.end());
+            serializedData.push_back('\0');
+        }
+    }
+    return serializedData;
+}
+
+// Function to XOR encode the data with a key
+void xorEncode(std::vector<char>& data, const std::string& key)
+{
+    size_t keyIndex = 0;
+    for (char& byte : data) {
+        byte ^= key[keyIndex];
+        keyIndex = (keyIndex + 1) % key.size();
+    }
+}
+
+// Function to save the encoded data to a file
+void saveEncodedDataToFile(const std::vector<char>& data, const std::string& filename)
+{
+    std::ofstream file(filename, std::ios::binary);
+    if (file.is_open()) {
+        file.write(data.data(), data.size());
+        file.close();
+        std::cout << "Data saved to " << filename << " encoded with XOR." << std::endl;
+    } else {
+        std::cerr << "Unable to open file: " << filename << std::endl;
+    }
+}
+
+
 void Database::Save()
 {
-    std::string mapString;
+    std::vector<char> serializedData = serializeTables(tables);
 
-    for (const auto &pair : this->data) {
-        mapString += pair.first + '\0';
-        mapString += std::string(pair.second) + '\0';
-    }
+    xorEncode(serializedData, this->key);
 
-    std::string encryptedData = this->security.XOR(mapString, this->key);
-    std::ofstream file(this->path, std::ios::binary | std::ios::out);
-    if (file.is_open()) {
-        file.write(encryptedData.c_str(), encryptedData.length());
-        file.close();
-        std::cout << "Encrypted map saved to " << this->path << " with password protection." << std::endl;
-    } else {
-        std::cerr << "Unable to open file: " << this->path << std::endl;
-    }
+    saveEncodedDataToFile(serializedData, this->path);
 }
 
 void Database::Load()
 {
-    size_t pos = 0;
-    std::ifstream file(this->path, std::ios::binary | std::ios::in);
-
-    if (!file.is_open()) {
-        std::cerr << "Unable to open file: " << this->path << std::endl;
-    }
-
-    file.seekg(0, std::ios::end);
-    size_t fileSize = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    std::string encryptedData(fileSize, '\0');
-    file.read(&encryptedData[0], fileSize);
-    file.close();
-
-    std::string decryptedData = this->security.XOR(encryptedData, this->key);
-    while (pos < decryptedData.length()) {
-        size_t nullPos = decryptedData.find('\0', pos);
-        if (nullPos == std::string::npos) {
-            break;
-        }
-
-        std::string key = decryptedData.substr(pos, nullPos - pos);
-
-        pos = nullPos + 1;
-        nullPos = decryptedData.find('\0', pos);
-        if (nullPos == std::string::npos) {
-            break;
-        }
-
-        std::string value = decryptedData.substr(pos, nullPos - pos);
-
-        this->data[key] = value;
-        pos = nullPos + 1;
-    }
-
-    std::cout << "Encrypted map loaded from " << this->path << " with password protection." << std::endl;
+    
 }
 
 bool Database::Exists()

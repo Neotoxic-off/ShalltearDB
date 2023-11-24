@@ -8,7 +8,7 @@
             Security();
             ~Security();
 
-            std::string XOR(const std::string &, const std::string &);
+            void XOR(std::vector<char> &, const std::string &);
     };
 
     
