@@ -6,8 +6,8 @@ Database::Database(std::string _key)
     this->path = std::string("database.stdb");
     this->key = _key;
     this->security = Security();
-    this->tables = std::vector<Table>();
-    this->instance = Table();
+    this->tables = std::list<Table *>();
+    this->instance = nullptr;
 }
 
 Database::~Database()
@@ -18,7 +18,7 @@ Database::~Database()
 bool Database::Select(std::string select_table)
 {
     for (auto &table : this->tables) {
-        if (table.name == select_table) {
+        if (table->name == select_table) {
             this->instance = table;
             return (true);
         }
@@ -27,16 +27,24 @@ bool Database::Select(std::string select_table)
     return (false);
 }
 
+void Database::Create(std::string table_id, std::string table_name)
+{
+    Table *table = new Table(table_id, table_name);
+    size_t size = std::distance(this->tables.begin(), this->tables.end());
+
+    this->tables.push_back(table);
+}
+
 void Database::Insert(std::string id, const std::string value)
 {
-    this->instance.content[id] = value;
+    this->instance->content[id] = value;
 }
 
 std::string Database::Retrieve(std::string id)
 {
-    auto it = this->instance.content.find(id);
+    auto it = this->instance->content.find(id);
 
-    if (it != this->instance.content.end()) {
+    if (it != this->instance->content.end()) {
         return it->second;
     } else {
         return "Not found";
@@ -45,9 +53,9 @@ std::string Database::Retrieve(std::string id)
 
 void Database::Update(std::string id, std::string value)
 {
-    auto it = this->instance.content.find(id);
+    auto it = this->instance->content.find(id);
 
-    if (it != this->instance.content.end()) {
+    if (it != this->instance->content.end()) {
         it->second = value;
     } else {
         this->logger.Ko("Record not found");
@@ -56,10 +64,10 @@ void Database::Update(std::string id, std::string value)
 
 void Database::Remove(std::string id)
 {
-    auto it = this->instance.content.find(id);
+    auto it = this->instance->content.find(id);
 
-    if (it != this->instance.content.end()) {
-        this->instance.content.erase(it);
+    if (it != this->instance->content.end()) {
+        this->instance->content.erase(it);
     } else {
         this->logger.Ko("Record not found");
     }
@@ -67,65 +75,83 @@ void Database::Remove(std::string id)
 
 void Database::Display()
 {
-    for (const auto &entry : this->instance.content) {
-        this->logger.Pair(entry.first, entry.second);
-    }
-}
-
-std::vector<char> serializeTables(const std::vector<Table>& tables)
-{
-    std::vector<char> serializedData;
-    for (const auto& table : tables) {
-        serializedData.insert(serializedData.end(), table.name.begin(), table.name.end());
-        serializedData.push_back('\0');
-        serializedData.insert(serializedData.end(), table.id.begin(), table.id.end());
-        serializedData.push_back('\0');
-        for (const auto& entry : table.content) {
-            serializedData.insert(serializedData.end(), entry.first.begin(), entry.first.end());
-            serializedData.push_back('\0');
-            serializedData.insert(serializedData.end(), entry.second.begin(), entry.second.end());
-            serializedData.push_back('\0');
+    if (this->instance != nullptr) {
+        for (const auto &entry : this->instance->content) {
+            this->logger.Pair(entry.first, entry.second);
         }
     }
-    return serializedData;
 }
 
-// Function to XOR encode the data with a key
-void xorEncode(std::vector<char>& data, const std::string& key)
-{
-    size_t keyIndex = 0;
-    for (char& byte : data) {
-        byte ^= key[keyIndex];
-        keyIndex = (keyIndex + 1) % key.size();
+void serializeTable(std::ostream& os, const Table& table) {
+    // Serialize table properties
+    os.write(table.name.data(), table.name.size() + 1);  // Include null terminator
+    os.write(table.id.data(), table.id.size() + 1);
+
+    // Serialize content
+    for (const auto& entry : table.content) {
+        os.write(entry.first.data(), entry.first.size() + 1);
+        os.write(entry.second.data(), entry.second.size() + 1);
+    }
+    // Null terminator to indicate the end of content
+    char nullTerminator = '\0';
+    os.write(&nullTerminator, 1);
+}
+
+void serializeAndSaveTables(std::ostream& os, const std::list<Table*>& tables) {
+    for (const auto& table : tables) {
+        serializeTable(os, *table);
     }
 }
 
-// Function to save the encoded data to a file
-void saveEncodedDataToFile(const std::vector<char>& data, const std::string& filename)
+std::string readNullTerminatedString(std::istream& is)
 {
-    std::ofstream file(filename, std::ios::binary);
-    if (file.is_open()) {
-        file.write(data.data(), data.size());
-        file.close();
-        std::cout << "Data saved to " << filename << " encoded with XOR." << std::endl;
-    } else {
-        std::cerr << "Unable to open file: " << filename << std::endl;
+    std::string result;
+    char ch;
+    while (is.get(ch) && ch != '\0') {
+        result.push_back(ch);
     }
+    return result;
 }
-
 
 void Database::Save()
 {
-    std::vector<char> serializedData = serializeTables(tables);
-
-    xorEncode(serializedData, this->key);
-
-    saveEncodedDataToFile(serializedData, this->path);
+    std::ofstream file(path, std::ios::binary);
+    if (file.is_open()) {
+        serializeAndSaveTables(file, tables);
+        file.close();
+        std::cout << "Data saved to " << path << " in binary format." << std::endl;
+    } else {
+        std::cerr << "Unable to open file: " << path << std::endl;
+    }
 }
 
 void Database::Load()
 {
-    
+    std::string name;
+    std::string id;
+    std::ifstream file(this->path, std::ios::binary);
+    Table *table;
+    std::string key;
+    std::string value;
+
+    if (file.is_open() == true) {
+        while (file.peek() != EOF) {
+            name = readNullTerminatedString(file);
+            id = readNullTerminatedString(file);
+            table = new Table(id, name);
+            while (file.peek() != '\0') {
+                key = readNullTerminatedString(file);
+                value = readNullTerminatedString(file);
+                table->content[key] = value;
+            }
+            file.ignore();
+            this->tables.push_back(table);
+        }
+        file.close();
+        std::cout << "Data loaded from " << this->path << " in binary format." << std::endl;
+    } else {
+        std::cerr << "Unable to open file: " << this->path << std::endl;
+    }
 }
 
 bool Database::Exists()

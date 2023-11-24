@@ -9,8 +9,11 @@ int main()
 
     if (database->Exists() == true) {
         database->Load();
-        interpreter->Insert("2", "load");
+        // database->Select("table_1");
+        // interpreter->Insert("2", "load");
     } else {
+        database->Create("0", "table_1");
+        database->Select("table_1");
         interpreter->Insert("1", "sample");
     }
 
