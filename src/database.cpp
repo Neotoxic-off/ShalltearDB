@@ -9,9 +9,9 @@ Database::Database(std::string _key)
     this->tables = std::list<Table *>();
     this->instance = nullptr;
 
-    this->db_s = '\010';
-    this->t_s = '\020';
-    this->tc_s = '\030';
+    this->db_s = '\01';
+    this->t_s = '\02';
+    this->tc_s = '\03';
 }
 
 Database::~Database()
@@ -191,74 +191,6 @@ void Database::Display()
     }
 }
 
-char *Database::Serialize(char *data, char ender)
-{
-    size_t length = 0;
-    char *content = nullptr;
-
-    if (data != nullptr) {
-        length = std::strlen(data);
-        content = new char[length + 2];
-
-        std::strcpy(content, data);
-        content[length] = ender;
-        content[length + 1] = '\0';
-
-        return (content);
-    } else {
-        this->logger.Ko("data empty");
-    }
-
-    return (data);
-}
-
-std::vector<std::pair<char *, size_t>> Database::PrepareDump()
-{
-    std::vector<std::pair<char *, size_t>> data = std::vector<std::pair<char *, size_t>>();
-
-    this->logger.Wait("serializating data");
-    for (const auto &table : this->tables) {
-        data.push_back(
-            std::make_pair(
-                this->Serialize(table->id.data(), this->t_s), table->id.size()
-            )
-        );
-        data.push_back(
-            std::make_pair(
-                this->Serialize(table->name.data(), this->t_s), table->name.size()
-            )
-        );
-        for (const auto &entry : table->content) {
-            data.push_back(
-                std::make_pair(
-                    this->Serialize(strdup(entry.first.data()), this->tc_s), entry.first.size()
-                )
-            );
-            data.push_back(
-                std::make_pair(
-                    this->Serialize(strdup(entry.second.data()), this->tc_s), entry.second.size()
-                )
-            );
-        }
-    }
-    this->logger.Ok("data serializated");
-
-    return (data);
-}
-
-void Database::Dumper(std::ostream &os)
-{
-    std::vector<std::pair<char *, size_t>> data = this->PrepareDump();
-
-    this->logger.Wait("dumping data");
-    for (auto &element : data) {
-        os.write(element.first, element.second + 1);
-    }
-
-    os.write(&this->db_s, 1);
-    this->logger.Ok("data dumped");
-}
-
 std::string Database::ExtractTable(std::istream &is)
 {
     char ch;
@@ -295,8 +227,17 @@ void Database::Save()
     std::ofstream file(path, std::ios::binary);
 
     if (file.is_open()) {
-        this->Dumper(file);
-        file.close();
+        for (const auto &table : tables)
+        {
+            file << table->id << this->tc_s << table->name << this->tc_s;
+
+            for (const auto &entry : table->content)
+            {
+                file << entry.first << this->t_s << entry.second << this->tc_s;
+            }
+
+            file << this->db_s;
+        }
         this->logger.Success("Database saved");
     } else {
         this->logger.Fail("Unable to open database");
@@ -305,27 +246,33 @@ void Database::Save()
 
 void Database::Load()
 {
-    Table *table = nullptr;
-    std::string id;
-    std::string key;
-    std::string name;
-    std::string value;
+    std::string line;
     std::ifstream file(this->path, std::ios::binary);
 
     if (file.is_open() == true) {
-        while (file.peek() != EOF) {
-            id = this->ExtractTable(file);
-            name = this->ExtractTable(file);
-            table = new Table(id, name);
-            while (file.peek() != this->db_s) {
-                key = this->ExtractContent(file);
-                value = this->ExtractContent(file);
-                table->content[key] = value;
+        while (std::getline(file, line, this->db_s))
+        {
+            std::istringstream iss(line);
+            std::string id, name, pair;
+
+            std::getline(iss, id, this->tc_s);
+            std::getline(iss, name, this->tc_s);
+
+            Table *table = new Table(id, name);
+
+            while (std::getline(iss, pair, this->tc_s))
+            {
+                size_t pos = pair.find(this->t_s);
+                if (pos != std::string::npos)
+                {
+                    std::string key = pair.substr(0, pos);
+                    std::string value = pair.substr(pos + 1);
+                    table->content[key] = value;
+                }
             }
-            file.ignore();
-            this->tables.push_back(table);
+
+            tables.push_back(table);
         }
-        file.close();
         this->logger.Success("Database loaded");
     } else {
         this->logger.Fail("Database not loaded");
