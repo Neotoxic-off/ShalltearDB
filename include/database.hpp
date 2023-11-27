@@ -37,15 +37,12 @@
 
             void Dumper(std::ostream &);
             char *Serialize(char *, char);
-            std::vector<std::pair<char *, size_t>> PrepareDump();
-            std::string ExtractTable(std::istream &);
-            std::string ExtractContent(std::istream &);
 
         private:
-            Security security;
             Logger logger;
-            std::list<Table *> tables;
+            Security security;
             Table *instance;
+            std::list<Table *> tables;
 
             std::string path;
             std::string key;

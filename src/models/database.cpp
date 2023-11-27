@@ -9,9 +9,9 @@ Database::Database(std::string _key)
     this->tables = std::list<Table *>();
     this->instance = nullptr;
 
-    this->db_s = '\01';
-    this->t_s = '\02';
-    this->tc_s = '\03';
+    this->db_s = '\r';
+    this->t_s = '\a';
+    this->tc_s = '\b';
 }
 
 Database::~Database()
@@ -31,26 +31,16 @@ bool Database::Locked()
 
 bool Database::ValidateTable(std::string table_id, std::string table_name)
 {
-    std::list<bool> checks = {
-        table_id.find(this->db_s) != std::string::npos,
-        table_name.find(this->db_s) != std::string::npos
-    };
-
-    for (bool check : checks) {
-        if (check == true) {
-            this->logger.Error("Database creation failed");
-            return (false);
-        }
-    }
-
     return (true);
 }
 
 bool Database::SelectByName(std::string select_table)
 {
+    std::string select_table_e = this->security.Encode(select_table);
+
     if (this->FindTableByName(select_table) == true) {
         for (auto &table : this->tables) {
-            if (table->name == select_table) {
+            if (table->name == select_table_e) {
                 this->instance = table;
                 this->logger.Ok("table selected");
                 return (true);
@@ -65,9 +55,11 @@ bool Database::SelectByName(std::string select_table)
 
 bool Database::SelectByID(std::string select_table)
 {
+    std::string select_table_e = this->security.Encode(select_table);
+
     if (this->FindTableByID(select_table) == true) {
         for (auto &table : this->tables) {
-            if (table->id == select_table) {
+            if (table->id == select_table_e) {
                 this->instance = table;
                 this->logger.Ok("table selected");
                 return (true);
@@ -84,11 +76,13 @@ void Database::Create(std::string table_id, std::string table_name)
 {
     Table *table = nullptr;
     size_t size = 0;
+    std::string table_id_e = this->security.Encode(table_id);
+    std::string table_name_e = this->security.Encode(table_name);
 
     if (this->FindTableByName(table_name) == false) {
         if (this->FindTableByID(table_id) == false) {
-            if (this->ValidateTable(table_id, table_name) == true) {
-                table = new Table(table_id, table_name);
+            if (this->ValidateTable(table_id_e, table_name_e) == true) {
+                table = new Table(table_id_e, table_name_e);
                 size = std::distance(this->tables.begin(), this->tables.end());
                 this->tables.push_back(table);
                 this->logger.Ok("table created");
@@ -105,8 +99,10 @@ void Database::Create(std::string table_id, std::string table_name)
 
 bool Database::FindTableByName(std::string table_name)
 {
+    std::string table_name_e = this->security.Encode(table_name);
+
     for (const auto &table : this->tables) {
-        if (table->name == table_name) {
+        if (table->name == table_name_e) {
             return (true);
         }
     }
@@ -116,8 +112,10 @@ bool Database::FindTableByName(std::string table_name)
 
 bool Database::FindTableByID(std::string table_id)
 {
+    std::string table_id_e = this->security.Encode(table_id);
+
     for (const auto &table : this->tables) {
-        if (table->id == table_id) {
+        if (table->id == table_id_e) {
             return (true);
         }
     }
@@ -127,10 +125,12 @@ bool Database::FindTableByID(std::string table_id)
 
 void Database::Insert(std::string id, const std::string value)
 {
-    auto it = this->instance->content.find(id);
+    std::string id_e = this->security.Encode(id);
+    std::string value_e = this->security.Encode(value);
+    auto it = this->instance->content.find(id_e);
 
     if (it == this->instance->content.end()) {
-        this->instance->content[id] = value;
+        this->instance->content[id_e] = value_e;
         this->logger.Ok("record inserted");
     } else {
         this->logger.Ko("record already present, use update instead");
@@ -140,9 +140,10 @@ void Database::Insert(std::string id, const std::string value)
 std::string Database::Retrieve(std::string id)
 {
     std::map<std::string, std::string>::iterator it;
-    
+    std::string id_e = this->security.Encode(id);
+
     if (this->Locked() == false) {
-        it = this->instance->content.find(id);
+        it = this->instance->content.find(id_e);
         if (it != this->instance->content.end()) {
             this->logger.Ok("record found");
             return (it->second);
@@ -155,11 +156,13 @@ std::string Database::Retrieve(std::string id)
 void Database::Update(std::string id, std::string value)
 {
     std::map<std::string, std::string>::iterator it;
+    std::string id_e = this->security.Encode(id);
+    std::string value_e = this->security.Encode(value);
 
     if (this->Locked() == false) {
-        it = this->instance->content.find(id);
+        it = this->instance->content.find(id_e);
         if (it != this->instance->content.end()) {
-            it->second = value;
+            it->second = value_e;
             this->logger.Ok("record updated");
         } else {
             this->logger.Ko("record not found");
@@ -170,9 +173,10 @@ void Database::Update(std::string id, std::string value)
 void Database::Delete(std::string id)
 {
     std::map<std::string, std::string>::iterator it;
+    std::string id_e = this->security.Encode(id);
     
     if (this->Locked() == false) {
-        it = this->instance->content.find(id);
+        it = this->instance->content.find(id_e);
         if (it != this->instance->content.end()) {
             this->instance->content.erase(it);
             this->logger.Ok("record deleted");
@@ -186,33 +190,9 @@ void Database::Display()
 {
     if (this->Locked() == false) {
         for (const auto &entry : this->instance->content) {
-            this->logger.Pair(entry.first, entry.second);
+            this->logger.Pair(this->security.Decode(entry.first), this->security.Decode(entry.second));
         }
     }
-}
-
-std::string Database::ExtractTable(std::istream &is)
-{
-    char ch;
-    std::string result;
-
-    while (is.get(ch) && ch != this->t_s) {
-        result.push_back(ch);
-    }
-
-    return (result);
-}
-
-std::string Database::ExtractContent(std::istream &is)
-{
-    char ch;
-    std::string result;
-
-    while (is.get(ch) && ch != this->tc_s && ch != this->t_s) {
-        result.push_back(ch);
-    }
-
-    return (result);
 }
 
 bool Database::Exists()
@@ -246,23 +226,28 @@ void Database::Save()
 
 void Database::Load()
 {
+    Table *table = nullptr;
     std::string line;
     std::ifstream file(this->path, std::ios::binary);
+    size_t pos = 0;
+    std::istringstream iss;
+    std::string id;
+    std::string name;
+    std::string pair;
 
     if (file.is_open() == true) {
         while (std::getline(file, line, this->db_s))
         {
-            std::istringstream iss(line);
-            std::string id, name, pair;
+            iss = std::istringstream(line);
 
             std::getline(iss, id, this->tc_s);
             std::getline(iss, name, this->tc_s);
 
-            Table *table = new Table(id, name);
+            table = new Table(id, name);
 
             while (std::getline(iss, pair, this->tc_s))
             {
-                size_t pos = pair.find(this->t_s);
+                pos = pair.find(this->t_s);
                 if (pos != std::string::npos)
                 {
                     std::string key = pair.substr(0, pos);

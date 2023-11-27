@@ -2,6 +2,8 @@
 
     #include <iostream>
     #include <vector>
+    #include <iomanip>
+    #include <sstream>
 
     class Security
     {
@@ -10,6 +12,6 @@
             ~Security();
 
             void XOR(std::vector<char> &, const std::string &);
+            std::string Encode(const std::string &);
+            std::string Decode(const std::string &);
     };
-
-    
