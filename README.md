@@ -26,41 +26,33 @@ Retrieve("key")
 
 ## Example
 ```CPP
-#include "database.hpp"
-#include "interpreter.hpp"
+#include "shalltearDB.hpp"
 
-int main()
+int main(int argc, char **argv)
 {
-    std::string key = std::string("secure_key");
-    Database *database = new Database(key);
-    Interpreter *interpreter = new Interpreter(database);
+    ShalltearDB *shalltearDB = new ShalltearDB("key");
 
-    if (database->Exists() == true) {
-        database->Load();
-        database->SelectByName("table_1");
-        interpreter->Display();
-        database->SelectByName("table_2");
-        interpreter->Display();
+    if (shalltearDB->database->Exists() == true) {
+        shalltearDB->database->Load();
+        shalltearDB->database->SelectByName("table_1");
+        shalltearDB->interpreter->Display();
+        shalltearDB->database->SelectByName("table_2");
+        shalltearDB->interpreter->Display();
     }
-    database->Create("tbl_1", "table_1");
-    database->Create("tbl_2", "table_2");
-
-    database->SelectByName("table_1");
-
+    shalltearDB->interpreter->Create("tbl_1", "table_1");
+    shalltearDB->interpreter->Create("tbl_2", "table_2");
+    shalltearDB->interpreter->SelectByID("tbl_1");
     for (size_t i = 0; i < 10; i++) {
-        interpreter->Insert(std::to_string(i), std::to_string(i));
+        shalltearDB->interpreter->Insert(std::to_string(i), std::to_string(i));
     }
-
-    database->SelectByName("table_2");
-
+    shalltearDB->database->SelectByName("table_2");
     for (size_t i = 10; i < 20; i++) {
-        interpreter->Insert(std::to_string(i), std::to_string(i));
+        shalltearDB->interpreter->Insert(std::to_string(i), std::to_string(i));
     }
-
-    interpreter->Display();
-
-    interpreter->Save();
+    shalltearDB->interpreter->Display();
+    shalltearDB->interpreter->Save();
 
     return (0);
 }
+
 ```
