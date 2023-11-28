@@ -9,19 +9,16 @@ Simple database management system implemented in C++. It includes classes for ma
 
 ## Commands
 ```CPP
-Exists()
-Load()
-Save()
-
-SelectByName("table name")
-SelectByID("table id")
-
-Display()
-
-Insert("key", "value")
-Delete("key")
-Update("key", "new value")
-Retrieve("key")
+Insert(std::string, std::string);
+Display();
+Save();
+Load();
+Update(std::string, std::string);
+FindById(std::string);
+Delete(std::string);
+Create(std::string, std::string);
+SelectByID(std::string);
+SelectByName(std::string);
 ```
 
 ## Example
