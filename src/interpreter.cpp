@@ -20,9 +20,24 @@ void Interpreter::Update(std::string id, std::string value)
     this->db->Update(id, value);
 }
 
-void Interpreter::Retrieve(std::string id)
+void Interpreter::Create(std::string id, std::string value)
 {
-    this->db->Retrieve(id);
+    this->db->Create(id, value);
+}
+
+void Interpreter::SelectByID(std::string id)
+{
+    this->db->SelectByID(id);
+}
+
+void Interpreter::SelectByName(std::string name)
+{
+    this->db->SelectByName(name);
+}
+
+void Interpreter::FindById(std::string id)
+{
+    this->db->RetrieveById(id);
 }
 
 void Interpreter::Delete(std::string id)

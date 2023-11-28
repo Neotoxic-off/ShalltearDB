@@ -137,7 +137,7 @@ void Database::Insert(std::string id, const std::string value)
     }
 }
 
-std::string Database::Retrieve(std::string id)
+std::string Database::RetrieveById(std::string id)
 {
     std::map<std::string, std::string>::iterator it;
     std::string id_e = this->security.Encode(id);
