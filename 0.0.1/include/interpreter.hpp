@@ -19,11 +19,8 @@
             void Save();
             bool Load();
             void Update(std::string, std::string);
-            void Delete(std::string);
-
             void FindById(std::string);
-            std::string FindFirst(std::string);
-            std::vector<std::string> FindAll(std::string);
+            void Delete(std::string);
 
             void Create(std::string, std::string);
             void SelectByID(std::string);

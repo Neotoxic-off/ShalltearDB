@@ -1,5 +1,7 @@
 ShalltearDB
 
+*.zip
+
 # Prerequisites
 *.d
 

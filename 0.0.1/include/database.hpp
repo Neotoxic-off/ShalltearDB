@@ -22,16 +22,13 @@
             bool SelectByID(std::string);
             void Create(std::string, std::string);
             void Insert(std::string, std::string);
+            std::string FindById(std::string);
             void Update(std::string, std::string);
             void Delete(std::string);
             void Display();
             void Save();
             void Load();
             
-            std::string FindById(std::string);
-            std::string FindFirst(std::string);
-            std::vector<std::string> FindAll(std::string);
-
             bool Exists();
             bool FindTableByName(std::string);
             bool FindTableByID(std::string);

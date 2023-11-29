@@ -37,7 +37,17 @@ void Interpreter::SelectByName(std::string name)
 
 void Interpreter::FindById(std::string id)
 {
-    this->db->RetrieveById(id);
+    this->db->FindById(id);
+}
+
+std::string Interpreter::FindFirst(std::string value)
+{
+    return (this->db->FindFirst(value));
+}
+
+std::vector<std::string> Interpreter::FindAll(std::string value)
+{
+    return (this->db->FindAll(value));
 }
 
 void Interpreter::Delete(std::string id)

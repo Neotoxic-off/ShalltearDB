@@ -2,7 +2,7 @@ OBJS := $(patsubst %.cpp, %.o, $(shell find src -type f -name "*.cpp"))
 INCLUDE := include
 HFILE := $(wildcard $(INCLUDE)/*.hpp)
 NAME := example
-LIB_PATH := lib/
+LIB_PATH := ../
 LIB := $(LIB_PATH)ShalltearDB.a
 INC_FLAG := -I $(INCLUDE) -g3 -Weverything -Wno-gnu -march=native -Wno-c++98-compat -Wno-padded -Wnon-virtual-dtor -Wno-weak-vtables
 OBJ_FLAG := -g3 -Weverything -Wno-gnu -march=native

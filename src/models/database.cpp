@@ -137,7 +137,7 @@ void Database::Insert(std::string id, const std::string value)
     }
 }
 
-std::string Database::RetrieveById(std::string id)
+std::string Database::FindById(std::string id)
 {
     std::map<std::string, std::string>::iterator it;
     std::string id_e = this->security.Encode(id);
@@ -152,6 +152,42 @@ std::string Database::RetrieveById(std::string id)
 
     return (nullptr);
 }
+
+std::string Database::FindFirst(std::string value)
+{
+    std::string result;
+    std::string value_e = this->security.Encode(value);
+
+    if (this->Locked() == false) {
+        for (auto &it: this->instance->content) {
+            if (it.second == value_e) {
+                this->logger.Ok("record found");
+                result = this->security.Decode(it.first);
+                return (result);
+            }
+        }
+        this->logger.Ko("record not found");
+    }
+
+    return (result);
+}
+
+std::vector<std::string> Database::FindAll(std::string value)
+{
+    std::string value_e = this->security.Encode(value);
+    std::vector<std::string> result = std::vector<std::string>();
+
+    if (this->Locked() == false) {
+        for (auto &it: this->instance->content) {
+            if (it.second == value_e) {
+                result.push_back(this->security.Decode(it.first));
+            }
+        }
+    }
+
+    return (result);
+}
+
 
 void Database::Update(std::string id, std::string value)
 {
