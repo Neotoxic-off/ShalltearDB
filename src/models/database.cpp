@@ -206,6 +206,17 @@ void Database::Update(std::string id, std::string value)
     }
 }
 
+int Database::Count()
+{
+    int size = 0;
+
+    if (this->Locked() == false) {
+        size = this->instance->content.size();
+    }
+
+    return (size);
+}
+
 void Database::Delete(std::string id)
 {
     std::map<std::string, std::string>::iterator it;

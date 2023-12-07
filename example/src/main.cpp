@@ -28,8 +28,10 @@ int main(int argc, char **argv)
     }
     shalltearDB->interpreter->Display();
     shalltearDB->interpreter->Save();
+    int size = shalltearDB->interpreter->Count();
 
     std::cout << "First: " << find << std::endl;
+    std::cout << "Count: " << size << std::endl;
     for (auto &it: all) {
         std::cout << it << std::endl;
     }

@@ -25,6 +25,7 @@
             void Update(std::string, std::string);
             void Delete(std::string);
             void Display();
+            int Count();
             void Save();
             void Load();
             

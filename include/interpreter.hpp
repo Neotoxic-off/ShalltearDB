@@ -16,6 +16,7 @@
 
             void Insert(std::string, std::string);
             void Display();
+            int Count();
             void Save();
             bool Load();
             void Update(std::string, std::string);

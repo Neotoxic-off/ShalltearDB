@@ -55,6 +55,11 @@ void Interpreter::Delete(std::string id)
     this->db->Delete(id);
 }
 
+int Interpreter::Count()
+{
+    return (this->db->Count());
+}
+
 void Interpreter::Display()
 {
     this->db->Display();
