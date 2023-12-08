@@ -110,6 +110,20 @@ bool Database::FindTableByName(std::string table_name)
     return (false);
 }
 
+std::map<std::string, std::string> Database::FindAllStartWith(std::string starter)
+{
+    std::string starter_e = this->security.Encode(starter);
+    std::map<std::string, std::string> result = std::map<std::string, std::string>();
+
+    for (const auto &data : this->instance->content) {
+        if (data.second.rfind(starter_e, 0) == 0) {
+            result[this->security.Decode(data.first)] = this->security.Decode(data.second);
+        }
+    }
+
+    return (result);
+}
+
 bool Database::FindTableByID(std::string table_id)
 {
     std::string table_id_e = this->security.Encode(table_id);

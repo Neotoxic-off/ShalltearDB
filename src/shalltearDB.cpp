@@ -8,5 +8,6 @@ ShalltearDB::ShalltearDB(std::string key)
 
 ShalltearDB::~ShalltearDB()
 {
-    
+    delete this->database;
+    delete this->interpreter;
 }

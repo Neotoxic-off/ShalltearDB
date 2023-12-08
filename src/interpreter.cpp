@@ -50,6 +50,11 @@ std::vector<std::string> Interpreter::FindAll(std::string value)
     return (this->db->FindAll(value));
 }
 
+std::map<std::string, std::string> Interpreter::FindAllStartWith(std::string starter)
+{
+    return (this->db->FindAllStartWith(starter));
+}
+
 void Interpreter::Delete(std::string id)
 {
     this->db->Delete(id);

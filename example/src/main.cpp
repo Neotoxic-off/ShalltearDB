@@ -27,6 +27,12 @@ int main(int argc, char **argv)
         shalltearDB->interpreter->Insert(std::to_string(i), std::to_string(i));
     }
     shalltearDB->interpreter->Display();
+
+    std::map<std::string, std::string> t = shalltearDB->interpreter->FindAllStartWith("1");
+    for (auto &i : t) {
+        std::cout << i.first << ": " << i.second << std::endl;
+    }
+
     shalltearDB->interpreter->Save();
     int size = shalltearDB->interpreter->Count();
 
