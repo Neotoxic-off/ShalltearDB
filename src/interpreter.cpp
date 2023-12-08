@@ -45,7 +45,7 @@ std::string Interpreter::FindFirst(std::string value)
     return (this->db->FindFirst(value));
 }
 
-std::vector<std::string> Interpreter::FindAll(std::string value)
+std::map<std::string, std::string> Interpreter::FindAll(std::string value)
 {
     return (this->db->FindAll(value));
 }

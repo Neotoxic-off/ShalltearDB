@@ -186,15 +186,15 @@ std::string Database::FindFirst(std::string value)
     return (result);
 }
 
-std::vector<std::string> Database::FindAll(std::string value)
+std::map<std::string, std::string> Database::FindAll(std::string value)
 {
     std::string value_e = this->security.Encode(value);
-    std::vector<std::string> result = std::vector<std::string>();
+    std::map<std::string, std::string> result = std::map<std::string, std::string>();
 
     if (this->Locked() == false) {
         for (auto &it: this->instance->content) {
             if (it.second == value_e) {
-                result.push_back(this->security.Decode(it.first));
+                result[this->security.Decode(it.first)] = this->security.Decode(it.second);
             }
         }
     }

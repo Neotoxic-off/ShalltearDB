@@ -1,10 +1,24 @@
 #include "shalltearDB.hpp"
 
+void test_findfirst(ShalltearDB *shalltearDB)
+{
+    std::string find = shalltearDB->interpreter->FindFirst("9");
+
+    std::cout << find << std::endl;
+}
+
+void test_findall(ShalltearDB *shalltearDB)
+{
+    std::map<std::string, std::string> all = shalltearDB->interpreter->FindAll("9");
+
+    for (auto &it: all) {
+        std::cout << it.first << ":" << it.second << std::endl;
+    }
+}
+
 int main(int argc, char **argv)
 {
     ShalltearDB *shalltearDB = new ShalltearDB("key");
-    std::string find;
-    std::vector<std::string> all = std::vector<std::string>();
 
     if (shalltearDB->database->Exists() == true) {
         shalltearDB->database->Load();
@@ -20,8 +34,6 @@ int main(int argc, char **argv)
     for (size_t i = 0; i < 10; i++) {
         shalltearDB->interpreter->Insert(std::to_string(i), std::to_string(i));
     }
-    find = shalltearDB->interpreter->FindFirst("9");
-    all = shalltearDB->interpreter->FindAll("9");
     shalltearDB->database->SelectByName("table_2");
     for (size_t i = 10; i < 20; i++) {
         shalltearDB->interpreter->Insert(std::to_string(i), std::to_string(i));
@@ -36,11 +48,8 @@ int main(int argc, char **argv)
     shalltearDB->interpreter->Save();
     int size = shalltearDB->interpreter->Count();
 
-    std::cout << "First: " << find << std::endl;
-    std::cout << "Count: " << size << std::endl;
-    for (auto &it: all) {
-        std::cout << it << std::endl;
-    }
+   test_findfirst(shalltearDB);
+   test_findall(shalltearDB);
 
     return (0);
 }

@@ -24,7 +24,7 @@
 
             void FindById(std::string);
             std::string FindFirst(std::string);
-            std::vector<std::string> FindAll(std::string);
+            std::map<std::string, std::string> FindAll(std::string);
             std::map<std::string, std::string> FindAllStartWith(std::string);
 
             void Create(std::string, std::string);
